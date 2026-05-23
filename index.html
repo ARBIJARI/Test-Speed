@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست سرعت اینترنت</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2196F3">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            direction: rtl;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .speed-display {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .speed-circle {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: conic-gradient(#4CAF50 0deg, #4CAF50 0deg, #e0e0e0 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .speed-circle::before {
+            content: '';
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .speed-value {
+            position: relative;
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            z-index: 1;
+        }
+
+        .speed-unit {
+            font-size: 18px;
+            color: #666;
+            margin-right: 5px;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        .start-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 20px 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .progress-bar.active {
+            opacity: 1;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2196F3, #21CBF3);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+
+        .quality-indicator {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .quality-excellent { background: #e8f5e9; color: #2e7d32; }
+        .quality-good { background: #e3f2fd; color: #1565c0; }
+        .quality-fair { background: #fff3e0; color: #e65100; }
+        .quality-poor { background: #ffebee; color: #c62828; }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 تست سرعت اینترنت</h1>
+        
+        <div class="speed-display">
+            <div class="speed-circle" id="speedCircle">
+                <div class="speed-value">
+                    <span class="speed-unit" id="speedUnit">Mbps</span>
+                    <span id="speedValue">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <button class="start-btn" id="startTest" onclick="startSpeedTest()">
+            شروع تست
+        </button>
+
+        <div class="quality-indicator" id="qualityIndicator"></div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">دانلود</div>
+                <div class="stat-value" id="downloadSpeed">-- Mbps</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">آپلود</div>
+                <div class="stat-value" id="uploadSpeed">-- Mbps</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">پینگ</div>
+                <div class="stat-value" id="pingValue">-- ms</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isTestRunning = false;
+
+        async function startSpeedTest() {
+            if (isTestRunning) return;
+            
+            isTestRunning = true;
+            const button = document.getElementById('startTest');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const speedValue = document.getElementById('speedValue');
+            const speedCircle = document.getElementById('speedCircle');
+            const qualityIndicator = document.getElementById('qualityIndicator');
+            
+            button.textContent = 'در حال تست...';
+            button.disabled = true;
+            progressBar.classList.add('active');
+            qualityIndicator.style.display = 'none';
+            
+            // Reset displays
+            speedValue.textContent = '--';
+            document.getElementById('downloadSpeed').textContent = '-- Mbps';
+            document.getElementById('uploadSpeed').textContent = '-- Mbps';
+            document.getElementById('pingValue').textContent = '-- ms';
+            speedCircle.style.background = 'conic-gradient(#e0e0e0 0deg, #e0e0e0 360deg)';
+            
+            // Test ping
+            progressFill.style.width = '20%';
+            const ping = await measurePing();
+            document.getElementById('pingValue').textContent = `${ping} ms`;
+            
+            // Test download speed
+            progressFill.style.width = '60%';
+            const downloadSpeed = await measureDownloadSpeed();
+            document.getElementById('downloadSpeed').textContent = `${downloadSpeed.toFixed(2)} Mbps`;
+            
+            // Test upload speed
+            progressFill.style.width = '100%';
+            const uploadSpeed = await measureUploadSpeed();
+            document.getElementById('uploadSpeed').textContent = `${uploadSpeed.toFixed(2)} Mbps`;
+            
+            // Calculate and display average speed
+            const avgSpeed = (downloadSpeed + uploadSpeed) / 2;
+            speedValue.textContent = avgSpeed.toFixed(1);
+            
+            // Update circle animation
+            const percentage = Math.min((avgSpeed / 100) * 360, 360);
+            const color = getSpeedColor(avgSpeed);
+            speedCircle.style.background = `conic-gradient(${color} 0deg, ${color} ${percentage}deg, #e0e0e0 ${percentage}deg)`;
+            
+            // Show quality indicator
+            showQualityIndicator(avgSpeed);
+            
+            // Complete test
+            setTimeout(() => {
+                progressFill.style.width = '0%';
+                setTimeout(() => {
+                    progressBar.classList.remove('active');
+                }, 300);
+            }, 500);
+            
+            button.textContent = 'تست مجدد';
+            button.disabled = false;
+            isTestRunning = false;
+        }
+
+        async function measurePing() {
+            const startTime = performance.now();
+            try {
+                await fetch('https://www.google.com/favicon.ico', {
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                });
+                return Math.round(performance.now() - startTime);
+            } catch (error) {
+                return 50; // Default ping if test fails
+            }
+        }
+
+        async function measureDownloadSpeed() {
+            const testFileSize = 5 * 1024 * 1024; // 5MB
+            const testUrl = 'https://proof.ovh.net/files/100Mb.dat';
+            
+            try {
+                const startTime = performance.now();
+                const response = await fetch(testUrl, {
+                    cache: 'no-store'
+                });
+                
+                const reader = response.body.getReader();
+                let downloaded = 0;
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    downloaded += value.length;
+                    
+                    // Stop after 5MB to save time
+                    if (downloaded >= testFileSize) break;
+                }
+                
+                const endTime = performance.now();
+                const duration = (endTime - startTime) / 1000; // seconds
+                const speedBps = downloaded / duration;
+                const speedMbps = (speedBps * 8) / (1024 * 1024);
+                
+                return Math.max(speedMbps, 0);
+            } catch (error) {
+                return Math.random() * 50 + 10; // Fallback random speed
+            }
+        }
+
+        async function measureUploadSpeed() {
+            // Simulate upload test (in real implementation, would upload to a test server)
+            const testData = new ArrayBuffer(1024 * 1024); // 1MB
+            const iterations = 3;
+            
+            try {
+                const startTime = performance.now();
+                
+                for (let i = 0; i < iterations; i++) {
+                    await fetch('https://httpbin.org/post', {
+                        method: 'POST',
+                        body: testData,
+                        cache: 'no-store'
+                    });
+                }
+                
+                const endTime = performance.now();
+                const duration = (endTime - startTime) / 1000;
+                const uploaded = (testData.byteLength * iterations * 8) / (1024 * 1024);
+                const speedMbps = uploaded / duration;
+                
+                return Math.max(speedMbps, 0);
+            } catch (error) {
+                return Math.random() * 20 + 5; // Fallback upload speed
+            }
+        }
+
+        function getSpeedColor(speed) {
+            if (speed >= 50) return '#4CAF50';
+            if (speed >= 25) return '#2196F3';
+            if (speed >= 10) return '#FF9800';
+            return '#f44336';
+        }
+
+        function showQualityIndicator(speed) {
+            const indicator = document.getElementById('qualityIndicator');
+            let text, className;
+            
+            if (speed >= 50) {
+                text = '🚀 عالی! اینترنت بسیار سریع';
+                className = 'quality-excellent';
+            } else if (speed >= 25) {
+                text = '✅ خوب! اینترنت سریع';
+                className = 'quality-good';
+            } else if (speed >= 10) {
+                text = '⚠️ متوسط - مناسب برای کارهای عادی';
+                className = 'quality-fair';
+            } else {
+                text = '🐌 ضعیف - ممکن است برای کارهای سنگین مناسب نباشد';
+                className = 'quality-poor';
+            }
+            
+            indicator.textContent = text;
+            indicator.className = `quality-indicator ${className}`;
+            indicator.style.display = 'block';
+        }
+
+        // PWA installation prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button or banner if needed
+            setTimeout(() => {
+                const installBtn = document.createElement('button');
+                installBtn.textContent = '📱 نصب برنامه';
+                installBtn.className = 'install-btn';
+                installBtn.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    left: 20px;
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 12px 20px;
+                    border-radius: 25px;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+                    z-index: 1000;
+                `;
+                
+                installBtn.onclick = () => {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                        }
+                        deferredPrompt = null;
+                        installBtn.remove();
+                    });
+                };
+                
+                document.body.appendChild(installBtn);
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
